@@ -164,21 +164,21 @@ def main():
     st.title("WoW Mythic+ Run Analyzer")
     st.markdown("Analyze top Mythic+ runs for specific classes and specs")
 
-    with st.form("run_analyzer_form"):
+    with st.form("run_analyzer_form", clear_on_submit=False):
         col1, col2, col3 = st.columns(3)
         
         with col1:
             dungeon = st.text_input("Dungeon Name (optional)", 
-                                help="e.g., siege-of-boralus")
+                               help="e.g., siege-of-boralus")
         
         with col2:
             desired_class = st.selectbox("Class", 
-                                    ["mage", "warrior", "druid", "paladin", "hunter", "rogue", 
-                                     "priest", "shaman", "warlock", "monk", "demon-hunter", "death-knight"])
+                                   ["mage", "warrior", "druid", "paladin", "hunter", "rogue", 
+                                    "priest", "shaman", "warlock", "monk", "demon-hunter", "death-knight"])
         
         with col3:
             desired_spec = st.text_input("Specialization", 
-                                    help="e.g., frost, arms, balance")
+                                   help="e.g., frost, arms, balance")
 
         submitted = st.form_submit_button("Analyze Runs")
 
@@ -210,7 +210,7 @@ def main():
                         for player in roster:
                             player_class = player.get("character", {}).get("class", {}).get("slug")
                             player_spec = player.get("character", {}).get("spec", {}).get("slug")
- 　 　 　 　 　 　 　 　 　 　 if player_class == desired_class and player_spec == desired_spec:
+                            if player_class == desired_class and player_spec == desired_spec:
                                 items = player.get("items", {}).get("items", {})
                                 talent_loadout = player.get("character", {}).get("talentLoadout", {}).get("loadoutText", "N/A")
                                 
