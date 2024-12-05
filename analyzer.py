@@ -7,6 +7,23 @@ import pandas as pd
 
 st.set_page_config(page_title="WoW M+ Run Analyzer", layout="wide")
 
+DUNGEONS = [
+    "Ara-Kara, City of Echoes",
+    "City of Threads",
+    "The Stonevault",
+    "The Dawnbreaker",
+    "Mists of Tirna Scithe",
+    "The Necrotic Wake",
+    "Siege of Boralus",
+    "Grim Batol"
+]
+
+def format_dungeon_name(dungeon_name):
+    # Remove special characters and convert spaces to hyphens
+    formatted = re.sub(r'[,\']', '', dungeon_name)  # Remove commas and apostrophes
+    formatted = re.sub(r'\s+', '-', formatted.strip())  # Convert spaces to hyphens
+    return formatted.lower()
+
 def get_topruns(dungeon_name, desired_class, desired_spec):
     runswithclass = []
     base_url = "https://raider.io/api/v1/mythic-plus/runs"
@@ -168,8 +185,10 @@ def main():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            dungeon = st.text_input("Dungeon Name (optional)", 
-                               help="e.g., siege-of-boralus")
+            dungeon = st.selectbox("Select Dungeon", 
+                               options=[""] + DUNGEONS,
+                               index=0,
+                               help="Select a dungeon to analyze")
         
         with col2:
             desired_class = st.selectbox("Class", 
@@ -187,7 +206,8 @@ def main():
                 st.error("Please enter a specialization")
                 return
 
-            run_ids = get_topruns(dungeon, desired_class, desired_spec)
+            formatted_dungeon = format_dungeon_name(dungeon) if dungeon else ""
+            run_ids = get_topruns(formatted_dungeon, desired_class, desired_spec)
             
             if not run_ids:
                 st.warning("No runs found matching the criteria")
