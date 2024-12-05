@@ -19,8 +19,14 @@ DUNGEONS = [
 ]
 
 def format_dungeon_name(dungeon_name):
+    # Special case for Ara-Kara
+    if "Ara-Kara" in dungeon_name:
+        formatted = dungeon_name.replace("Ara-Kara", "arakara")
+    else:
+        formatted = dungeon_name
+    
     # Remove special characters and convert spaces to hyphens
-    formatted = re.sub(r'[,\']', '', dungeon_name)  # Remove commas and apostrophes
+    formatted = re.sub(r'[,\']', '', formatted)  # Remove commas and apostrophes
     formatted = re.sub(r'\s+', '-', formatted.strip())  # Convert spaces to hyphens
     return formatted.lower()
 
