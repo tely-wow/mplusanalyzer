@@ -164,116 +164,118 @@ def main():
     st.title("WoW Mythic+ Run Analyzer")
     st.markdown("Analyze top Mythic+ runs for specific classes and specs")
 
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        dungeon = st.text_input("Dungeon Name (optional)", 
-                               help="e.g., siege-of-boralus")
-    
-    with col2:
-        desired_class = st.selectbox("Class", 
-                                   ["mage", "warrior", "druid", "paladin", "hunter", "rogue", 
-                                    "priest", "shaman", "warlock", "monk", "demon-hunter", "death-knight"])
-    
-    with col3:
-        desired_spec = st.text_input("Specialization", 
-                                   help="e.g., frost, arms, balance")
-
-    if st.button("Analyze Runs"):
-        if not desired_spec:
-            st.error("Please enter a specialization")
-            return
-
-        run_ids = get_topruns(dungeon, desired_class, desired_spec)
+    with st.form("run_analyzer_form"):
+        col1, col2, col3 = st.columns(3)
         
-        if not run_ids:
-            st.warning("No runs found matching the criteria")
-            return
+        with col1:
+            dungeon = st.text_input("Dungeon Name (optional)", 
+                                help="e.g., siege-of-boralus")
+        
+        with col2:
+            desired_class = st.selectbox("Class", 
+                                    ["mage", "warrior", "druid", "paladin", "hunter", "rogue", 
+                                     "priest", "shaman", "warlock", "monk", "demon-hunter", "death-knight"])
+        
+        with col3:
+            desired_spec = st.text_input("Specialization", 
+                                    help="e.g., frost, arms, balance")
 
-        st.subheader(f"Found {len(run_ids)} runs matching your criteria")
+        submitted = st.form_submit_button("Analyze Runs")
 
-        for run_id in run_ids:
-            run_details = get_run_details(run_id)
-            if run_details:
-                with st.expander(f"Run ID: {run_id} - {run_details.get('dungeon', {}).get('name', 'N/A')} +{run_details.get('mythic_level', 'N/A')}"):
-                    roster = run_details.get("roster", [])
-                    total_stats = {
-                        'versatility': 0,
-                        'crit': 0,
-                        'haste': 0,
-                        'mastery': 0
-                    }
+        if submitted:
+            if not desired_spec:
+                st.error("Please enter a specialization")
+                return
 
-                    for player in roster:
-                        player_class = player.get("character", {}).get("class", {}).get("slug")
-                        player_spec = player.get("character", {}).get("spec", {}).get("slug")
-                        
-                        if player_class == desired_class and player_spec == desired_spec:
-                            items = player.get("items", {}).get("items", {})
-                            talent_loadout = player.get("character", {}).get("talentLoadout", {}).get("loadoutText", "N/A")
-                            
-                            st.markdown(f"**Character:** {player.get('character', {}).get('name', 'Unknown')}")
-                            st.markdown(f"**Talent Loadout:** `{talent_loadout}`")
-                            st.markdown(f"**Raider.IO Profile:** [View Run](https://raider.io/mythic-plus-runs/season-tww-1/{run_id})")
-                            
-                            # Create a table for item stats
-                            data = []
-                            for slot, item in items.items():
-                                if isinstance(item, dict):
-                                    item_level = item.get("item_level", "N/A")
-                                    item_name = item.get("name", "Unknown")
-                                    item_id = str(item.get("item_id", ""))
-                                    
-                                    if item_id:
-                                        try:
-                                            # Get the raw item data
-                                            enchant = item.get("enchant", "")
-                                            gems = item.get("gems", [])
-                                            bonuses = item.get("bonuses", [])
-                                            
-                                            item_tooltip = get_item_data(
-                                                enchant,
-                                                gems,
-                                                bonuses,
-                                                item_level,
-                                                item_id
-                                            )
-                                            
-                                            if item_tooltip and "tooltip" in item_tooltip:
-                                                stats = extract_stats_from_html(item_tooltip["tooltip"], slot, item.get("gems", []))
-                                                gems, enchant = extract_gems_and_enchants(item_tooltip["tooltip"])
-                                                
-                                                for stat, value in stats.items():
-                                                    total_stats[stat] += value
-                                                
-                                                data.append([
-                                                    slot, item_name, item_level,
-                                                    ", ".join(gems) if gems else "None",
-                                                    enchant,
-                                                    stats["versatility"],
-                                                    stats["crit"],
-                                                    stats["haste"],
-                                                    stats["mastery"]
-                                                ])
-                                                
-                                        except Exception as e:
-                                            st.error(f"Error processing item {item_name}: {str(e)}")
-                            
-                            if data:
-                                df = pd.DataFrame(
-                                    data,
-                                    columns=["Slot", "Item Name", "Item Level", "Gems", "Enchant", 
-                                            "Versatility", "Crit", "Haste", "Mastery"]
-                                )
-                                st.dataframe(df)
+            run_ids = get_topruns(dungeon, desired_class, desired_spec)
+            
+            if not run_ids:
+                st.warning("No runs found matching the criteria")
+                return
+
+            st.subheader(f"Found {len(run_ids)} runs matching your criteria")
+
+            for run_id in run_ids:
+                run_details = get_run_details(run_id)
+                if run_details:
+                    with st.expander(f"Run ID: {run_id} - {run_details.get('dungeon', {}).get('name', 'N/A')} +{run_details.get('mythic_level', 'N/A')}"):
+                        roster = run_details.get("roster", [])
+                        total_stats = {
+                            'versatility': 0,
+                            'crit': 0,
+                            'haste': 0,
+                            'mastery': 0
+                        }
+
+                        for player in roster:
+                            player_class = player.get("character", {}).get("class", {}).get("slug")
+                            player_spec = player.get("character", {}).get("spec", {}).get("slug")
+ 　 　 　 　 　 　 　 　 　 　 if player_class == desired_class and player_spec == desired_spec:
+                                items = player.get("items", {}).get("items", {})
+                                talent_loadout = player.get("character", {}).get("talentLoadout", {}).get("loadoutText", "N/A")
                                 
-                                st.markdown("### Total Stats")
-                                st.markdown(f"""
-                                - Versatility: {total_stats['versatility']}
-                                - Critical Strike: {total_stats['crit']}
-                                - Haste: {total_stats['haste']}
-                                - Mastery: {total_stats['mastery']}
-                                """)
+                                st.markdown(f"**Character:** {player.get('character', {}).get('name', 'Unknown')}")
+                                st.markdown(f"**Talent Loadout:** `{talent_loadout}`")
+                                st.markdown(f"**Raider.IO Profile:** [View Run](https://raider.io/mythic-plus-runs/season-tww-1/{run_id})")
+                                
+                                # Create a table for item stats
+                                data = []
+                                for slot, item in items.items():
+                                    if isinstance(item, dict):
+                                        item_level = item.get("item_level", "N/A")
+                                        item_name = item.get("name", "Unknown")
+                                        item_id = str(item.get("item_id", ""))
+                                        
+                                        if item_id:
+                                            try:
+                                                # Get the raw item data
+                                                enchant = item.get("enchant", "")
+                                                gems = item.get("gems", [])
+                                                bonuses = item.get("bonuses", [])
+                                                
+                                                item_tooltip = get_item_data(
+                                                    enchant,
+                                                    gems,
+                                                    bonuses,
+                                                    item_level,
+                                                    item_id
+                                                )
+                                                
+                                                if item_tooltip and "tooltip" in item_tooltip:
+                                                    stats = extract_stats_from_html(item_tooltip["tooltip"], slot, item.get("gems", []))
+                                                    gems, enchant = extract_gems_and_enchants(item_tooltip["tooltip"])
+                                                    
+                                                    for stat, value in stats.items():
+                                                        total_stats[stat] += value
+                                                    
+                                                    data.append([
+                                                        slot, item_name, item_level,
+                                                        ", ".join(gems) if gems else "None",
+                                                        enchant,
+                                                        stats["versatility"],
+                                                        stats["crit"],
+                                                        stats["haste"],
+                                                        stats["mastery"]
+                                                    ])
+                                                    
+                                            except Exception as e:
+                                                st.error(f"Error processing item {item_name}: {str(e)}")
+                                
+                                if data:
+                                    df = pd.DataFrame(
+                                        data,
+                                        columns=["Slot", "Item Name", "Item Level", "Gems", "Enchant", 
+                                                "Versatility", "Crit", "Haste", "Mastery"]
+                                    )
+                                    st.dataframe(df)
+                                    
+                                    st.markdown("### Total Stats")
+                                    st.markdown(f"""
+                                    - Versatility: {total_stats['versatility']}
+                                    - Critical Strike: {total_stats['crit']}
+                                    - Haste: {total_stats['haste']}
+                                    - Mastery: {total_stats['mastery']}
+                                    """)
 
 if __name__ == "__main__":
     main()
